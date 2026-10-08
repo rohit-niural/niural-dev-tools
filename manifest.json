@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Niural Dev Tools",
+  "version": "0.1.0",
+  "description": "Shows the niural-payroll DynamoDB key for the entity on the open page.",
+  "permissions": ["tabs", "storage"],
+  "host_permissions": [
+    "*://niural.com/*",
+    "*://*.niural.com/*",
+    "*://*.amplifyapp.com/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Niural Dev Tools"
+  }
+}

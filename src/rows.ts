@@ -1,0 +1,14 @@
+import type { Field, Match } from "./extract";
+
+/**
+ * Display rows for a match: its own fields, plus the table name when the host
+ * maps to a known env. An unmapped host shows no table row rather than a
+ * guessed one.
+ */
+export function rowsFor(match: Match): Field[] {
+  const rows = [...match.fields];
+  if (match.env !== null) {
+    rows.push({ label: "Table", value: `customers-${match.env}` });
+  }
+  return rows;
+}

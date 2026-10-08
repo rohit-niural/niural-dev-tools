@@ -1,0 +1,23 @@
+{
+  "name": "niural-dev-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension surfacing niural-payroll DynamoDB keys for the entity on the open page.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "compile": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.290",
+    "@types/node": "^20.19.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  }
+}

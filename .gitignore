@@ -1,0 +1,7 @@
+.superpowers/
+node_modules/
+dist/
+*.zip
+
+# Internal design notes — kept locally, not published
+docs/

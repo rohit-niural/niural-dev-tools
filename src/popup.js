@@ -1,15 +1,24 @@
-import { stashKey } from "./stash";
-import type { Field, Match } from "./extract";
-import { rowsFor } from "./rows";
+import { stashKey } from "./stash.js";
+import { rowsFor } from "./rows.js";
 
-function renderEmpty(root: HTMLElement): void {
+/** @import { Field, Match } from "./extract.js" */
+
+/**
+ * @param {HTMLElement} root
+ * @returns {void}
+ */
+function renderEmpty(root) {
   const p = document.createElement("p");
   p.className = "empty";
   p.textContent = "No PK on this page.";
   root.append(p);
 }
 
-function renderRow(field: Field): HTMLElement {
+/**
+ * @param {Field} field
+ * @returns {HTMLElement}
+ */
+function renderRow(field) {
   const row = document.createElement("div");
   row.className = "row";
 
@@ -43,14 +52,22 @@ function renderRow(field: Field): HTMLElement {
   return row;
 }
 
-/** Minimal shape check so a malformed stored value falls back to the empty state instead of throwing inside `main()`. */
-function isMatch(value: unknown): value is Match {
+/**
+ * Minimal shape check so a malformed stored value falls back to the empty state instead of throwing inside `main()`.
+ *
+ * @param {unknown} value
+ * @returns {value is Match}
+ */
+function isMatch(value) {
   return (
-    typeof value === "object" && value !== null && Array.isArray((value as { fields?: unknown }).fields)
+    typeof value === "object" &&
+    value !== null &&
+    Array.isArray(/** @type {{ fields?: unknown }} */ (value).fields)
   );
 }
 
-async function activeMatch(): Promise<Match | null> {
+/** @returns {Promise<Match | null>} */
+async function activeMatch() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id === undefined) return null;
   const key = stashKey(tab.id);
@@ -59,14 +76,16 @@ async function activeMatch(): Promise<Match | null> {
   return isMatch(value) ? value : null;
 }
 
-async function main(): Promise<void> {
+/** @returns {Promise<void>} */
+async function main() {
   const root = document.getElementById("root");
   if (!root) return;
 
   // A failed/missing stash is treated the same as no match — the popup must
   // always render something rather than propagate a rejection and leave
   // `root` empty, which looks like a broken extension.
-  let match: Match | null;
+  /** @type {Match | null} */
+  let match;
   try {
     match = await activeMatch();
   } catch {

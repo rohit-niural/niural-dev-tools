@@ -1,5 +1,5 @@
-import { extract, type Match } from "./extract";
-import { stashKey } from "./stash";
+import { extract } from "./extract.js";
+import { stashKey } from "./stash.js";
 
 const BADGE_TEXT = "●";
 const BADGE_COLOR = "#16a34a";
@@ -9,16 +9,27 @@ const BADGE_COLOR = "#16a34a";
  * so a call can tell, once its awaits resolve, whether a later call for the
  * same tab has since superseded it — otherwise two in-flight calls for a tab
  * with different URLs could apply their badge writes out of order.
+ *
+ * @type {Map<number, number>}
  */
-const generations = new Map<number, number>();
+const generations = new Map();
 
-function bumpGeneration(tabId: number): number {
+/**
+ * @param {number} tabId
+ * @returns {number}
+ */
+function bumpGeneration(tabId) {
   const next = (generations.get(tabId) ?? 0) + 1;
   generations.set(tabId, next);
   return next;
 }
 
-function isCurrentGeneration(tabId: number, generation: number): boolean {
+/**
+ * @param {number} tabId
+ * @param {number} generation
+ * @returns {boolean}
+ */
+function isCurrentGeneration(tabId, generation) {
   return generations.get(tabId) === generation;
 }
 
@@ -26,8 +37,11 @@ function isCurrentGeneration(tabId: number, generation: number): boolean {
  * Runs a fire-and-forget promise without letting a rejection become an
  * unhandled rejection in the worker, where it would otherwise land in the
  * extension's error card and mask real failures.
+ *
+ * @param {Promise<unknown>} promise
+ * @returns {void}
  */
-function detach(promise: Promise<unknown>): void {
+function detach(promise) {
   void promise.catch(() => {});
 }
 
@@ -35,10 +49,14 @@ function detach(promise: Promise<unknown>): void {
  * Recomputes a tab's badge and stash. Called on every event that can change
  * what a tab is showing; safe to call with a url the extension does not
  * recognise, which simply clears both.
+ *
+ * @param {number} tabId
+ * @param {string | undefined} url
+ * @returns {Promise<void>}
  */
-export async function refreshTab(tabId: number, url: string | undefined): Promise<void> {
+export async function refreshTab(tabId, url) {
   const generation = bumpGeneration(tabId);
-  const match: Match | null = url ? extract(url) : null;
+  const match = url ? extract(url) : null;
 
   if (!match) {
     await chrome.storage.session.remove(stashKey(tabId));
@@ -83,8 +101,10 @@ chrome.tabs.onRemoved.addListener((tabId) => {
  * on browser shutdown and no tab events fire for tabs restored from a
  * previous session, so without this a tab already sitting on a matching page
  * shows nothing until its next `onUpdated`/`onActivated` event.
+ *
+ * @returns {void}
  */
-function scanOpenTabs(): void {
+function scanOpenTabs() {
   detach(
     chrome.tabs.query({}).then((tabs) => {
       for (const tab of tabs) {

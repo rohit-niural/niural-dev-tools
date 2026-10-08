@@ -1,40 +1,49 @@
-import { envForHost, isKnownHost, type Env } from "./env";
-import {
-  EMPLOYER_FIELDS,
-  EMPLOYER_MATCH_NAME,
-  EMPLOYER_PK_FIELD,
-  PATTERNS,
-  type FieldSpec,
-  type Params,
-  type Pattern,
-} from "./patterns";
+import { envForHost, isKnownHost } from "./env.js";
+import { EMPLOYER_FIELDS, EMPLOYER_MATCH_NAME, EMPLOYER_PK_FIELD, PATTERNS } from "./patterns.js";
 
-export type Field = { label: string; value: string };
+/**
+ * @import { Env } from "./env.js"
+ * @import { FieldSpec, Params, Pattern } from "./patterns.js"
+ */
 
-export type Match = {
-  name: string;
-  /**
-   * `route` when a registered pattern matched the whole path, `employer` when
-   * only the leading employer id was recognised. Callers that treat the two
-   * differently — the badge lights for `route` alone — read this rather than
-   * comparing `name`.
-   */
-  kind: "route" | "employer";
-  env: Env | null;
-  fields: Field[];
-};
+/**
+ * @typedef {object} Field
+ * @property {string} label
+ * @property {string} value
+ */
+
+/**
+ * @typedef {object} Match
+ * @property {string} name
+ * @property {"route" | "employer"} kind `route` when a registered pattern
+ *   matched the whole path, `employer` when only the leading employer id was
+ *   recognised. Callers that treat the two differently — the badge lights for
+ *   `route` alone — read this rather than comparing `name`.
+ * @property {Env | null} env
+ * @property {Field[]} fields
+ */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function segments(pathname: string): string[] {
+/**
+ * @param {string} pathname
+ * @returns {string[]}
+ */
+function segments(pathname) {
   return pathname.split("/").filter((s) => s.length > 0);
 }
 
-function matchPattern(pattern: Pattern, pathSegments: string[]): Params | null {
+/**
+ * @param {Pattern} pattern
+ * @param {string[]} pathSegments
+ * @returns {Params | null}
+ */
+function matchPattern(pattern, pathSegments) {
   const template = segments(pattern.path);
   if (template.length !== pathSegments.length) return null;
 
-  const params: Params = {};
+  /** @type {Params} */
+  const params = {};
   for (let i = 0; i < template.length; i++) {
     const expected = template[i];
     const actual = pathSegments[i];
@@ -51,7 +60,12 @@ function matchPattern(pattern: Pattern, pathSegments: string[]): Params | null {
   return params;
 }
 
-function render(fields: readonly FieldSpec[], params: Params): Field[] {
+/**
+ * @param {readonly FieldSpec[]} fields
+ * @param {Params} params
+ * @returns {Field[]}
+ */
+function render(fields, params) {
   return fields.map((f) => ({ label: f.label, value: f.value(params) }));
 }
 
@@ -62,9 +76,13 @@ function render(fields: readonly FieldSpec[], params: Params): Field[] {
  *
  * A path whose leading segment is an employer id always yields at least that
  * employer's key, even when no registered route matches the rest of it.
+ *
+ * @param {string} url
+ * @returns {Match | null}
  */
-export function extract(url: string): Match | null {
-  let parsed: URL;
+export function extract(url) {
+  /** @type {URL} */
+  let parsed;
   try {
     parsed = new URL(url);
   } catch {
@@ -88,7 +106,8 @@ export function extract(url: string): Match | null {
 
   const leading = pathSegments[0];
   if (leading !== undefined && UUID.test(leading)) {
-    const params: Params = { employerId: leading.toLowerCase() };
+    /** @type {Params} */
+    const params = { employerId: leading.toLowerCase() };
     return {
       name: EMPLOYER_MATCH_NAME,
       kind: "employer",

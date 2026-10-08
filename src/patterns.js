@@ -1,27 +1,28 @@
-export type Params = Record<string, string>;
+/** @typedef {Record<string, string>} Params */
 
-export type FieldSpec = {
-  label: string;
-  value: (params: Params) => string;
-};
+/**
+ * @typedef {object} FieldSpec
+ * @property {string} label
+ * @property {(params: Params) => string} value
+ */
 
-export type Pattern = {
-  name: string;
-  /**
-   * Slash-separated template. A `:name` segment captures one path segment and
-   * requires it to be a UUID — every id niural-payroll puts in a path is one.
-   * When a route needs a non-UUID param, add a param kind here rather than
-   * loosening this one.
-   */
-  path: string;
-  fields: FieldSpec[];
-};
+/**
+ * @typedef {object} Pattern
+ * @property {string} name
+ * @property {string} path Slash-separated template. A `:name` segment captures
+ *   one path segment and requires it to be a UUID — every id niural-payroll
+ *   puts in a path is one. When a route needs a non-UUID param, add a param
+ *   kind here rather than loosening this one.
+ * @property {FieldSpec[]} fields
+ */
 
 /**
  * Keys for the `customers-<env>` table. The payrolls table stores the reverse
  * order (`org#{employerId}#emp#{employeeId}`) — do not emit that form here.
+ *
+ * @type {readonly Pattern[]}
  */
-export const PATTERNS: readonly Pattern[] = [
+export const PATTERNS = [
   {
     name: "Employee detail",
     path: "/:employerId/people/employees/:employeeId",
@@ -45,7 +46,8 @@ export const PATTERNS: readonly Pattern[] = [
  */
 export const EMPLOYER_MATCH_NAME = "Employer";
 
-export const EMPLOYER_FIELDS: readonly FieldSpec[] = [
+/** @type {readonly FieldSpec[]} */
+export const EMPLOYER_FIELDS = [
   { label: "PK", value: (p) => `org#${p.employerId}` },
   { label: "SK", value: () => "profile" },
   { label: "Employer ID", value: (p) => p.employerId },
@@ -55,8 +57,10 @@ export const EMPLOYER_FIELDS: readonly FieldSpec[] = [
  * Appended to a route match that captured an employerId, so the employer key
  * is one click away on any page. Labelled distinctly because that match's own
  * `PK` row belongs to the more specific entity on the page.
+ *
+ * @type {FieldSpec}
  */
-export const EMPLOYER_PK_FIELD: FieldSpec = {
+export const EMPLOYER_PK_FIELD = {
   label: "Employer PK",
   value: (p) => `org#${p.employerId}`,
 };
